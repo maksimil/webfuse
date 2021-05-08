@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::parser::detect_script;
+use crate::parser::{detect_script, detect_styles};
 
 #[test]
 fn script_detection() {
@@ -22,5 +22,24 @@ fn script_detection() {
             assert_eq!(asset.path, "lib/index.js");
             assert_eq!(asset.region, region);
         }
+    }
+}
+
+#[test]
+fn style_detection() {
+    let data = vec![
+        ("<link rel=  \"stylesheet\" href =\"style.css\">", 1),
+        ("<link href=\"style.css\" defer rel =\"stylesheet\"/>", 1),
+        ("<link rel=\"stylesheet\" href =\"style.css\">", 1),
+        ("<link href=\"style.css\" rel=\"stylesheet\"/><link meta href =\"style.css\"><link rel=  \"stylesheet\" href =\"style.css\">", 2)
+    ];
+
+    for (s, len) in data {
+        let assets = detect_styles(s).collect::<Vec<_>>();
+
+        println!("data: {:?}", s);
+        println!("assets: {:?}", assets);
+
+        assert_eq!(assets.len(), len);
     }
 }

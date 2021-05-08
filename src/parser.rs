@@ -45,7 +45,7 @@ fn regex(s: &str) -> Regex {
 lazy_static! {
     static ref SCRIPT_REGEX: Regex = regex("<script.*?src\\s*?=\\s*?\"(.*?)\".*?>\\s*?</script>");
     static ref STYLE_UNCHECKED_REGEX: Regex = regex("<link.*?href\\s*?=\\s*?\"(.*?)\".*?>");
-    static ref STYLE_CHECK_REGEX: Regex = regex("<link.*?rel=\"stylesheet\".*?>");
+    static ref STYLE_CHECK_REGEX: Regex = regex("<link.*?rel\\s*?=\\s*?\"stylesheet\".*?>");
 }
 
 pub fn detect_script<'a>(data: &'a str) -> impl Iterator<Item = Asset> + 'a {
