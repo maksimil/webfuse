@@ -48,24 +48,31 @@ lazy_static! {
     static ref STYLE_CHECK_REGEX: Regex = regex("(<link.*?rel=\"stylesheet\".*?>)");
 }
 
+pub fn detect_script<'a>(data: &'a str) -> impl Iterator<Item = Asset> + 'a {
+    SCRIPT_REGEX.captures_iter(data).map(|cap| {
+        let all = cap.get(0).unwrap();
+        let region = (all.start(), all.end());
+        let path = cap[1].to_string();
+        Asset::new_script(path, region)
+    })
+}
+
 pub fn parse_html(data: String) -> HtmlFile {
     let mut assets = Vec::new();
 
     // script search
-    for cap in SCRIPT_REGEX.captures_iter(&data) {
-        let all = cap.get(0).unwrap();
-        let region = (all.start(), all.end());
-        let path = &cap[1];
-
+    let scripts = detect_script(&data).map(|a| {
         println!(
-            "({}, {}): \"{}\", path: {}",
-            region.0,
-            region.1,
-            &data[region.0..region.1],
-            path
+            "[{}, {}], {}: {}",
+            a.region.0,
+            a.region.1,
+            &data[a.region.0..a.region.1],
+            a.path
         );
-        assets.push(Asset::new_script(path.to_string(), region));
-    }
+        a
+    });
+
+    assets.extend(scripts);
 
     HtmlFile { data, assets }
 }
