@@ -57,22 +57,50 @@ pub fn detect_script<'a>(data: &'a str) -> impl Iterator<Item = Asset> + 'a {
     })
 }
 
+pub fn detect_styles<'a>(data: &'a str) -> impl Iterator<Item = Asset> + 'a {
+    STYLE_UNCHECKED_REGEX.captures_iter(data).filter_map(|cap| {
+        let all = cap.get(0).unwrap();
+
+        if STYLE_CHECK_REGEX.is_match(all.as_str()) {
+            let region = (all.start(), all.end());
+            let path = cap[1].to_string();
+            Some(Asset::new_style(path, region))
+        } else {
+            None
+        }
+    })
+}
+
 pub fn parse_html(data: String) -> HtmlFile {
     let mut assets = Vec::new();
 
-    // script search
-    let scripts = detect_script(&data).map(|a| {
+    #[cfg(debug_assertions)]
+    let debug_asset = |asset: Asset| {
         println!(
-            "[{}, {}], {}: {}",
-            a.region.0,
-            a.region.1,
-            &data[a.region.0..a.region.1],
-            a.path
+            "region: {:?}, asset: {:?}",
+            &data[asset.region.0..asset.region.1],
+            asset
         );
-        a
-    });
+        asset
+    };
+
+    // script search
+    #[cfg(not(debug_assertions))]
+    let scripts = detect_script(&data);
+
+    #[cfg(debug_assertions)]
+    let scripts = detect_script(&data).map(debug_asset);
 
     assets.extend(scripts);
+
+    // style search
+    #[cfg(not(debug_assertions))]
+    let styles = detect_styles(&data);
+
+    #[cfg(debug_assertions)]
+    let styles = detect_styles(&data).map(debug_asset);
+
+    assets.extend(styles);
 
     HtmlFile { data, assets }
 }
