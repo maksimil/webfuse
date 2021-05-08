@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::parser::{detect_script, detect_styles};
+use crate::parser::{detect_script, detect_styles, parse_html, HtmlFile};
 
 #[test]
 fn script_detection() {
@@ -41,5 +41,48 @@ fn style_detection() {
         println!("assets: {:?}", assets);
 
         assert_eq!(assets.len(), len);
+    }
+}
+
+#[test]
+fn big_test() {
+    let data = include_str!("../test/index.html");
+
+    let HtmlFile { assets, data } = parse_html(data.to_string());
+
+    {
+        let asset = &assets[0];
+        let region = &data[asset.region.0..asset.region.1];
+
+        assert_eq!(region, "<script src=\"index.js\"></script>");
+        assert_eq!(asset.wrappers, ("<script>", "</script>"));
+        assert_eq!(asset.path, "index.js");
+    }
+
+    {
+        let asset = &assets[1];
+        let region = &data[asset.region.0..asset.region.1];
+
+        assert_eq!(region, "<link rel=\"stylesheet\" href=\"style.css\" />");
+        assert_eq!(asset.wrappers, ("<style>", "</style>"));
+        assert_eq!(asset.path, "style.css");
+    }
+
+    {
+        let asset = &assets[2];
+        let region = &data[asset.region.0..asset.region.1];
+
+        assert_eq!(region, "<link href=\"a.css\" rel=\"stylesheet\" />");
+        assert_eq!(asset.wrappers, ("<style>", "</style>"));
+        assert_eq!(asset.path, "a.css");
+    }
+
+    {
+        let asset = &assets[3];
+        let region = &data[asset.region.0..asset.region.1];
+
+        assert_eq!(region, "<script src=\"lib/lib.min.js\" defer></script>");
+        assert_eq!(asset.wrappers, ("<script>", "</script>"));
+        assert_eq!(asset.path, "lib/lib.min.js");
     }
 }

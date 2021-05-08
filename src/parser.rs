@@ -3,8 +3,8 @@ use regex::{Regex, RegexBuilder};
 
 #[derive(Debug, Clone)]
 pub struct HtmlFile {
-    data: String,
-    assets: Vec<Asset>,
+    pub data: String,
+    pub assets: Vec<Asset>,
 }
 
 type Region = (usize, usize);
@@ -101,6 +101,8 @@ pub fn parse_html(data: String) -> HtmlFile {
     let styles = detect_styles(&data).map(debug_asset);
 
     assets.extend(styles);
+
+    assets.sort_by(|_1, _2| <_ as Ord>::cmp(&_1.region.0, &_2.region.0));
 
     HtmlFile { data, assets }
 }
