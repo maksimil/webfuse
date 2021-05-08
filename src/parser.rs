@@ -74,35 +74,27 @@ pub fn detect_styles<'a>(data: &'a str) -> impl Iterator<Item = Asset> + 'a {
 pub fn parse_html(data: String) -> HtmlFile {
     let mut assets = Vec::new();
 
-    #[cfg(debug_assertions)]
-    let debug_asset = |asset: Asset| {
-        println!(
-            "region: {:?}, asset: {:?}",
-            &data[asset.region.0..asset.region.1],
-            asset
-        );
-        asset
-    };
-
     // script search
-    #[cfg(not(debug_assertions))]
     let scripts = detect_script(&data);
-
-    #[cfg(debug_assertions)]
-    let scripts = detect_script(&data).map(debug_asset);
-
     assets.extend(scripts);
 
     // style search
-    #[cfg(not(debug_assertions))]
     let styles = detect_styles(&data);
-
-    #[cfg(debug_assertions)]
-    let styles = detect_styles(&data).map(debug_asset);
-
     assets.extend(styles);
 
+    // asset sorting
     assets.sort_by(|_1, _2| <_ as Ord>::cmp(&_1.region.0, &_2.region.0));
+
+    #[cfg(debug_assertions)]
+    {
+        for asset in assets.iter() {
+            println!(
+                "---\nregion: {:?}\nasset: {:?}",
+                &data[asset.region.0..asset.region.1],
+                asset
+            );
+        }
+    }
 
     HtmlFile { data, assets }
 }
