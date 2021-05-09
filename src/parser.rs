@@ -85,16 +85,5 @@ pub fn parse_html(data: String) -> HtmlFile {
     // asset sorting
     assets.sort_by(|_1, _2| <_ as Ord>::cmp(&_1.region.0, &_2.region.0));
 
-    #[cfg(debug_assertions)]
-    {
-        for asset in assets.iter() {
-            println!(
-                "---\nregion: {:?}\nasset: {:?}",
-                &data[asset.region.0..asset.region.1],
-                asset
-            );
-        }
-    }
-
     HtmlFile { data, assets }
 }
