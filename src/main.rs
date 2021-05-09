@@ -1,9 +1,12 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use anyhow::{anyhow, ensure, Context};
 use clap::clap_app;
 use parser::parse_html;
-use thiserror::private::PathAsDisplay;
 
 use crate::{errors::Error, load::LoadedHtml};
 
@@ -29,12 +32,7 @@ fn main() -> anyhow::Result<()> {
 
     let to = match matches.value_of("TO") {
         Some(to) => to,
-        None => {
-            eprintln!(
-                "\u{001b}[33m[warn]\u{001b}[0m --to argument was not provided, output will be written to fused_index.html"
-            );
-            "fused_index.html"
-        }
+        None => "fused_index.html",
     }
     .to_string();
 
@@ -53,7 +51,13 @@ fn main() -> anyhow::Result<()> {
         LoadedHtml::load(root, html)?
     };
 
-    println!("CHUNKS: {:#?}", html.chunks());
+    // writing chunks to the output file
+    let mut file = File::create(to).context(anyhow!("Failed to create output file"))?;
+
+    for chunk in html.chunks() {
+        file.write_all(chunk.as_bytes())
+            .context(anyhow!("Failed to write file output"))?;
+    }
 
     Ok(())
 }
