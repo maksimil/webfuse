@@ -26,6 +26,7 @@ fn main() -> anyhow::Result<()> {
         .value_of("FILE")
         .context(anyhow!("FILE argument was not provided"))?
         .into();
+
     let to = match matches.value_of("TO") {
         Some(to) => to,
         None => {
@@ -52,7 +53,7 @@ fn main() -> anyhow::Result<()> {
         LoadedHtml::load(root, html)?
     };
 
-    println!("HTML: {:#?}", html);
+    println!("CHUNKS: {:#?}", html.chunks());
 
     Ok(())
 }

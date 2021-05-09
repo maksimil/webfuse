@@ -49,3 +49,23 @@ impl LoadedAsset {
         })
     }
 }
+
+impl LoadedHtml {
+    pub fn chunks<'a>(&'a self) -> Vec<&'a str> {
+        let mut chunks = Vec::with_capacity(4 * self.assets.len() + 1);
+        let mut ptr = 0;
+        for asset in &self.assets {
+            chunks.push(&self.data[ptr..asset.region.0]);
+
+            chunks.push(asset.wrappers.0);
+            chunks.push(&asset.data);
+            chunks.push(asset.wrappers.1);
+
+            ptr = asset.region.1;
+        }
+
+        chunks.push(&self.data[ptr..self.data.len()]);
+
+        chunks
+    }
+}
