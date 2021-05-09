@@ -9,4 +9,7 @@ pub enum Error {
 
     #[error("\"{0}\" is not a file path")]
     NotFile(PathBuf),
+
+    #[error("Failed to write output file")]
+    OutputFileErr,
 }

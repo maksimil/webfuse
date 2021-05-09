@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
 
     for chunk in html.chunks() {
         file.write_all(chunk.as_bytes())
-            .context(anyhow!("Failed to write file output"))?;
+            .context(Error::OutputFileErr)?;
     }
 
     Ok(())
