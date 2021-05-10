@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::{anyhow, ensure, Context};
-use clap::clap_app;
+use clap::{clap_app, ArgMatches};
 use parser::parse_html;
 
 use crate::{errors::Error, load::LoadedHtml};
@@ -14,6 +14,28 @@ mod errors;
 mod load;
 pub mod parser;
 mod test;
+
+struct Config {
+    pub file: PathBuf,
+    pub to: String,
+}
+
+impl Config {
+    fn from_matches(matches: ArgMatches) -> anyhow::Result<Config> {
+        let file: PathBuf = matches
+            .value_of("FILE")
+            .context(anyhow!("FILE argument was not provided"))?
+            .into();
+
+        let to = match matches.value_of("TO") {
+            Some(to) => to,
+            None => "fused_index.html",
+        }
+        .to_string();
+
+        Ok(Config { file, to })
+    }
+}
 
 fn main() -> anyhow::Result<()> {
     let matches = clap_app!(webfuse =>
@@ -25,16 +47,7 @@ fn main() -> anyhow::Result<()> {
     )
     .get_matches();
 
-    let file: PathBuf = matches
-        .value_of("FILE")
-        .context(anyhow!("FILE argument was not provided"))?
-        .into();
-
-    let to = match matches.value_of("TO") {
-        Some(to) => to,
-        None => "fused_index.html",
-    }
-    .to_string();
+    let Config { file, to } = Config::from_matches(matches)?;
 
     ensure!(file.is_file(), Error::NotFile(file.clone()));
 
